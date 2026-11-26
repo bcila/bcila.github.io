@@ -1,0 +1,171 @@
+---
+title: "Shipping Astro to GitHub Pages without broken paths"
+description: "A base-path-safe setup for Astro on GitHub Pages, covering the config, internal links, sitemap, 404s, and the official deployment workflow."
+pubDate: 2026-08-12
+category: "Web Platform"
+tags: ["Astro", "GitHub Pages", "CI/CD"]
+cover: "/images/blog/astro-github-pages.svg"
+coverAlt: "Abstract browser window and deployment pipeline illustration"
+sample: false
+---
+
+GitHub Pages is a good fit for a static portfolio: free hosting, a real HTTPS domain, and no server to maintain. The sharp edge is the base path. A user site lives at `https://user.github.io/`, while a project site lives at `https://user.github.io/repo/`. Code that hardcodes `/images/...` works in the first case and breaks in the second.
+
+This is the setup used by this site, written so it can move between both deployment models without rewriting components.
+
+## Configure `site` and `base`
+
+Astro needs the public URL for canonical links and the base path for generated routes.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+const site = process.env.SITE_URL ?? 'https://user.github.io';
+const base = process.env.BASE_PATH ?? '/';
+
+export default defineConfig({
+  site,
+  base,
+  output: 'static',
+  trailingSlash: 'always',
+});
+```
+
+For a project site, build with:
+
+```bash
+SITE_URL=https://user.github.io BASE_PATH=/my-repo npm run build
+```
+
+For a user site, the defaults are enough.
+
+## Never hardcode a root-relative asset
+
+A single helper keeps this honest:
+
+```ts
+const base = import.meta.env.BASE_URL;
+
+export function withBase(path = '/') {
+  if (/^(?:[a-z]+:)?\/\//i.test(path) || path.startsWith('mailto:')) {
+    return path;
+  }
+
+  if (path.startsWith('#')) return path;
+
+  const normalizedBase = base === '/' ? '' : base.replace(/\/+$/, '');
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+  return `${normalizedBase}${normalizedPath}` || '/';
+}
+```
+
+Use it for navigation, images, the resume PDF, the manifest, and the favicon:
+
+```astro
+---
+import { withBase } from '@/utils/url';
+---
+
+<a href={withBase('/projects/')}>Projects</a>
+<img src={withBase('/images/profile.svg')} alt="Profile" />
+```
+
+It is tempting to rely on relative paths instead. Relative URLs can work, but they become fragile as soon as a route has more than one path segment. A single helper is easier to audit.
+
+## Canonical URLs must include the base
+
+`Astro.url.pathname` already includes the deployment base, which makes canonical links straightforward:
+
+```astro
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+```
+
+Asset URLs are different. Use `withBase()` before resolving them against `Astro.site`:
+
+```astro
+const socialImage = new URL(withBase('/og.png'), Astro.site).href;
+```
+
+## Make the 404 page real
+
+Astro builds `src/pages/404.astro` to `dist/404.html`. GitHub Pages serves that file for unknown paths. For a project site it still lives within the repository's published tree, so the page's own links must use the same base helper.
+
+Also keep the 404 out of the sitemap:
+
+```js
+sitemap({
+  filter: (page) => !page.includes('/404'),
+})
+```
+
+## The deployment workflow
+
+The official Astro action installs dependencies, builds the site, and uploads the artifact. GitHub's Pages action then publishes it.
+
+```yaml
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: withastro/action@v6
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+```
+
+In the repository, open **Settings → Pages** and set the source to **GitHub Actions**. No `gh-pages` branch is involved.
+
+## Test with a non-empty base before deploying
+
+A production build at `/` does not prove the project-site path works. Build once with a fake base and open the preview:
+
+```bash
+SITE_URL=https://example.com BASE_PATH=/portfolio npm run build
+npx astro preview
+```
+
+Then check:
+
+- the home page loads assets from `/portfolio/...`
+- navigation links include `/portfolio/`
+- project and blog detail links resolve
+- the resume PDF and images load
+- the 404 page's links stay inside `/portfolio/`
+
+A broken path is almost always a hardcoded slash that escaped review. A quick grep is worth the thirty seconds:
+
+```bash
+grep -rn 'href="/' src --include='*.astro'
+grep -rn 'src="/' src --include='*.astro'
+```
+
+Every hit should be intentional, usually inside a `withBase()` call.
+
+## Keep the deployment boring
+
+The workflow only needs to do three things: build, upload, deploy. Put content and personal data in data files, keep the base path logic in one helper, and verify the site under a fake base before the first push. After that, deployment is a push to `main`.

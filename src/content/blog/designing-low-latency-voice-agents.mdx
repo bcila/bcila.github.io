@@ -1,0 +1,148 @@
+---
+title: "Designing a low-latency voice agent pipeline"
+description: "A practical tour of the moving parts behind a realtime voice agent: audio transport, turn detection, LLM streaming, and the async work around them."
+pubDate: 2026-10-18
+category: "Realtime"
+tags: ["FastAPI", "LiveKit", "WebSockets", "AI"]
+cover: "/images/blog/voice-pipeline.svg"
+coverAlt: "Abstract waveform and event pipeline illustration"
+sample: true
+---
+
+> **Sample article.** This is starter content for the portfolio template. The code is simplified and illustrative — replace the article with your own writing before publishing.
+
+A voice agent feels instantaneous when it works: you speak, it answers, the conversation overlaps naturally. Under that experience sits a pipeline with several places to lose a few hundred milliseconds. Most of the engineering is about keeping the audio path short and moving everything else out of the way.
+
+This is a tour of the architecture I reach for, not a claim that there is one correct design.
+
+## The shape of the pipeline
+
+At a high level, a single conversation turn looks like this:
+
+```text
+caller audio
+   │
+   ▼
+transport (WebRTC / SIP) ──► turn detection ──► agent runtime
+                                                   │
+                                    ┌──────────────┼──────────────┐
+                                    ▼              ▼              ▼
+                                LLM stream     tool calls     event log
+                                    │              │              │
+                                    └──────────────┴──────► speech output
+```
+
+Four boundaries matter:
+
+1. **Transport.** LiveKit handles rooms, tracks, and reconnection. The backend should not reimplement media plumbing.
+2. **Turn detection.** Decide when the caller has finished speaking. Too eager and you interrupt; too slow and the agent feels sluggish.
+3. **Agent runtime.** Stream tokens, call tools, and produce speech without blocking the event loop.
+4. **Everything else.** Transcripts, summaries, moderation events, and billing belong on a queue.
+
+## Keep the request path boring
+
+The HTTP and WebSocket edges should do very little. Authenticate, attach request context, hand off, and return. In FastAPI, that usually means a thin dependency layer and explicit timeouts around anything external.
+
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.rooms = await build_room_registry()
+    yield
+    await app.state.rooms.close()
+
+app = FastAPI(lifespan=lifespan)
+
+@app.websocket("/sessions/{session_id}")
+async def session_socket(websocket: WebSocket, session_id: str):
+    await websocket.accept()
+    session = await app.state.rooms.join(session_id, websocket)
+
+    try:
+        async for event in session.events():
+            await websocket.send_json(event)
+    except WebSocketDisconnect:
+        await session.leave()
+```
+
+Notice what is *not* here: no transcription loop, no database writes, no LLM call inside the request handler. Those are separate concerns with their own failure modes.
+
+### Timeouts are design decisions
+
+Every await on a network boundary needs a budget. A generous timeout is not resilience; it is a slow failure. Set a number, log when you exceed it, and decide what the caller hears when a dependency is late.
+
+## Turn detection and interruption
+
+The most noticeable latency is not model time. It is the pause after the caller stops talking.
+
+- Use the transport's voice activity events where possible.
+- Add a short silence window, then allow barge-in while the agent is speaking.
+- Cancel in-flight generation when the caller interrupts, and cancel the corresponding speech output.
+- Keep the last few turns in context, but do not rebuild the entire prompt on every token.
+
+A useful pattern is an explicit turn state machine rather than a pile of booleans:
+
+```text
+listening ──speech_started──► listening (barge-in)
+listening ──silence_window──► thinking
+thinking  ──first_token─────► speaking
+speaking  ──speech_started──► listening (cancel output)
+```
+
+When the state machine is explicit, cancellation is easier to reason about and easier to test.
+
+## Put side effects on a queue
+
+Transcript persistence, summaries, CRM updates, and analytics should not block the reply. Publish an event and let a worker handle it.
+
+```python
+from celery import shared_task
+
+@shared_task(
+    bind=True,
+    autoretry_for=(TimeoutError,),
+    retry_backoff=True,
+    max_retries=5,
+    acks_late=True,
+)
+def persist_turn(self, session_id: str, turn: dict) -> None:
+    # Idempotent: the same turn can be delivered more than once.
+    store.upsert_turn(session_id=session_id, turn_id=turn["id"], payload=turn)
+```
+
+Two rules make this safe:
+
+1. **Every consumer is idempotent.** At-least-once delivery is the normal case, not the exception.
+2. **The event carries an identifier.** Retries and replays need a stable key.
+
+## The latency budget
+
+Write the budget down before optimizing. A simple starting point:
+
+| Stage | Target | Notes |
+| --- | --- | --- |
+| Transport hop | < 50 ms | Same region where possible |
+| Turn detection | 200–400 ms | Tune with real callers |
+| First LLM token | < 500 ms | Stream, do not wait for completion |
+| Speech first chunk | < 300 ms | Prefer streaming synthesis |
+| Side effects | off path | Queue and observe |
+
+These are targets, not guarantees. The point is to know which number moved when a call feels slow.
+
+## Measure the conversation, not just the service
+
+Standard request metrics miss the experience. Track:
+
+- time from end of caller speech to first agent audio
+- interruption rate and recovery time
+- percentage of turns that hit a tool call
+- queue lag for transcript and summary jobs
+- reconnects per hundred calls
+
+Correlate them with a session ID that appears in transport logs, application logs, and worker logs. Without that key, debugging a bad call becomes archaeology.
+
+## What I would keep
+
+The design that survives production is usually the least clever one: a managed transport, a small state machine, streaming everywhere, and side effects on a queue. The complexity belongs in observability and failure handling, not in the happy path.

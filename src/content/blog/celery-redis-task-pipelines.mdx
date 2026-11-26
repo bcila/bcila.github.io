@@ -1,0 +1,159 @@
+---
+title: "Celery and Redis patterns for work that cannot be lost"
+description: "A practical checklist for building async task pipelines that survive retries, worker crashes, and duplicate deliveries without duplicating side effects."
+pubDate: 2026-09-06
+category: "Backend"
+tags: ["Python", "Celery", "Redis", "Architecture"]
+cover: "/images/blog/celery-redis.svg"
+coverAlt: "Abstract task queue and worker graph illustration"
+sample: true
+---
+
+> **Sample article.** This is starter content for the portfolio template. Treat the snippets as a starting point, not a production-ready library.
+
+Celery makes it easy to move work off the request path. It also makes it easy to build a pipeline that silently loses jobs, runs the same job twice, or fills a queue with retries nobody is watching.
+
+The defaults are reasonable for simple cases. Once a task touches money, messages, or user-visible state, you need to be explicit about delivery and idempotency.
+
+## Start with the failure model
+
+Redis as a broker is fast and simple, but it is not a durable database. A few consequences worth designing around:
+
+- A worker can crash after receiving a message but before acknowledging it.
+- A task can be delivered more than once.
+- A visibility timeout can redeliver a task that is still running.
+- A queue can grow faster than workers drain it.
+
+None of these are exotic. They are Tuesday. The pipeline should be correct under all of them.
+
+## A safer task baseline
+
+For side-effecting tasks, this is a reasonable starting point:
+
+```python
+from celery import shared_task
+
+@shared_task(
+    bind=True,
+    acks_late=True,
+    reject_on_worker_lost=True,
+    autoretry_for=(ConnectionError, TimeoutError),
+    retry_backoff=True,
+    retry_jitter=True,
+    max_retries=8,
+    time_limit=120,
+    soft_time_limit=100,
+)
+def send_receipt(self, order_id: str, attempt_key: str) -> None:
+    if already_processed(attempt_key):
+        return
+
+    with transaction.atomic():
+        order = lock_order(order_id)
+        receipt = build_receipt(order)
+        deliver(receipt)
+        mark_processed(attempt_key, task_id=self.request.id)
+```
+
+Four properties make this defensible:
+
+1. **Late acknowledgement.** The message is acknowledged after the work, not before it.
+2. **A stable idempotency key.** Re-delivery becomes harmless.
+3. **A transaction around state changes.** Partial writes do not leave the order half-updated.
+4. **Bounded retries and time limits.** A poisoned job does not retry forever.
+
+`acks_late` is not free: long tasks can be redelivered while still running. That makes idempotency mandatory rather than optional.
+
+## Separate queues by shape of work
+
+A single default queue couples fast interactive jobs to slow batch jobs. When the batch backlog grows, the interactive work waits behind it.
+
+```python
+# settings.py
+CELERY_TASK_ROUTES = {
+    "app.tasks.send_receipt": {"queue": "critical"},
+    "app.tasks.index_document": {"queue": "bulk"},
+    "app.tasks.refresh_report": {"queue": "batch"},
+}
+
+CELERY_TASK_DEFAULT_QUEUE = "default"
+```
+
+Then run workers with the concurrency each queue needs:
+
+```bash
+celery -A app worker -Q critical -c 8 --prefetch-multiplier=1
+celery -A app worker -Q bulk,batch -c 4 --prefetch-multiplier=1
+```
+
+`--prefetch-multiplier=1` is a common choice for uneven task durations. It trades throughput for fairer distribution and faster reaction to a growing queue.
+
+## Retries need a policy, not a decorator
+
+`autoretry_for` answers *which exceptions*. It does not answer *how long*, *how many*, or *what happens when retries are exhausted*.
+
+Write those down:
+
+| Failure | Retry? | Backoff | Terminal action |
+| --- | --- | --- | --- |
+| Network timeout | Yes | Exponential + jitter | Alert, leave job pending |
+| Downstream 429 | Yes | Respect `Retry-After` | Delay queue |
+| Invalid payload | No | — | Dead-letter, fix data |
+| Duplicate delivery | No-op | — | Return success |
+
+A dead-letter queue is not overkill. It is where you look when someone asks why a receipt never arrived.
+
+## Make state transitions observable
+
+You cannot debug a pipeline from worker logs alone. Attach a correlation ID at the API boundary and carry it through every task.
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+@shared_task(bind=True)
+def process_event(self, event_id: str, correlation_id: str) -> None:
+    logger.info(
+        "task.started",
+        extra={
+            "event_id": event_id,
+            "correlation_id": correlation_id,
+            "task_id": self.request.id,
+            "retries": self.request.retries,
+        },
+    )
+```
+
+Then track, per queue:
+
+- depth and age of the oldest message
+- success, retry, and failure rates
+- task duration percentiles
+- dead-letter count and reasons
+
+Queue depth alone is misleading. A queue with ten very slow jobs can be worse than one with a thousand fast jobs. Age is closer to the user-visible truth.
+
+## Backpressure is part of the API
+
+If producers can enqueue without limit, workers are not the only problem. Add a bound at the edge:
+
+- cap requests that create expensive jobs
+- return `429` when the backlog exceeds a threshold
+- batch low-value work instead of enqueueing per row
+- disable nonessential scheduled tasks during incidents
+
+This is less satisfying than tuning worker concurrency, but it prevents the failure mode where the queue absorbs an outage and then amplifies it.
+
+## A short checklist
+
+- Every side-effecting task is idempotent.
+- Late acknowledgement is paired with idempotency.
+- Retry policy is explicit, with jitter and a maximum.
+- Terminal failures go to a dead-letter queue.
+- Queues are separated by work shape.
+- Correlation IDs cross API, worker, and database logs.
+- The oldest message age is monitored, not just depth.
+- Producers have a backpressure story.
+
+None of this is novel. It is the difference between a demo and a pipeline you can leave alone at night.
