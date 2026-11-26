@@ -1,0 +1,33 @@
+---
+import { ArrowRight, Compass } from '@lucide/astro';
+import MainLayout from '@/layouts/MainLayout.astro';
+import { withBase } from '@/utils/url';
+---
+
+<MainLayout
+  title="Page not found"
+  description="The page you were looking for does not exist. Return to the portfolio home page."
+  noindex
+>
+  <section class="error-page container-page">
+    <div class="max-w-xl">
+      <p class="error-code" aria-hidden="true">404</p>
+      <h1 class="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">This page went missing.</h1>
+      <p class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted">
+        The link may be outdated, or the page may have moved. Try one of these instead.
+      </p>
+      <div class="mt-7 flex flex-wrap items-center justify-center gap-2">
+        <a href={withBase('/')} class="btn btn-primary">
+          Back home
+          <ArrowRight size={14} aria-hidden="true" />
+        </a>
+        <a href={withBase('/projects/')} class="btn btn-secondary">Projects</a>
+        <a href={withBase('/blog/')} class="btn btn-secondary">Blog</a>
+      </div>
+      <p class="mt-8 inline-flex items-center gap-1.5 font-mono text-[0.66rem] text-faint">
+        <Compass size={12} aria-hidden="true" />
+        Lost? Email me and I will point you to the right place.
+      </p>
+    </div>
+  </section>
+</MainLayout>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Burak Anıl Cila monogram">
+  <rect width="64" height="64" rx="14" fill="#0b0d0e"/>
+  <rect x="0.5" y="0.5" width="63" height="63" rx="13.5" fill="none" stroke="#ffffff" stroke-opacity="0.12"/>
+  <path d="M20 17h12.5c7.2 0 11.5 3.6 11.5 9.4 0 3.8-2 6.7-5.3 8 4.2 1.1 6.8 4.2 6.8 8.6 0 6.6-4.8 10.5-12.7 10.5H20V17Zm11.3 14.3c3.4 0 5.4-1.6 5.4-4.4 0-2.7-2-4.3-5.4-4.3h-4.1v8.7h4.1Zm.8 16.4c3.7 0 5.8-1.8 5.8-4.8s-2.1-4.8-5.8-4.8h-4.9V47.7h4.9Z" fill="#f1f4f2"/>
+  <circle cx="49" cy="17" r="4.5" fill="#8ce8a8"/>
+</svg>
