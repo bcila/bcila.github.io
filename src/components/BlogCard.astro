@@ -1,0 +1,59 @@
+---
+import { ArrowUpRight, Clock } from '@lucide/astro';
+import type { BlogPost } from '@/utils/blog';
+import { readingTime } from '@/utils/blog';
+import { formatDate } from '@/utils/date';
+import { withBase } from '@/utils/url';
+
+interface Props {
+  post: BlogPost;
+  /** Heading level for the card title, so listing pages keep a valid order. */
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { post, headingLevel = 'h3' } = Astro.props;
+const Heading = headingLevel;
+const articleUrl = withBase(`/blog/${post.id}/`);
+const minutes = readingTime(post.body);
+---
+
+<article class="card card-interactive blog-card" data-blog-card data-category={post.data.category}>
+  <a href={articleUrl} class="blog-cover" tabindex="-1" aria-hidden="true">
+    <img
+      src={withBase(post.data.cover)}
+      alt={post.data.coverAlt}
+      width="1200"
+      height="630"
+      loading="lazy"
+      decoding="async"
+    />
+  </a>
+
+  {post.data.sample && <span class="blog-sample">Sample</span>}
+
+  <div class="blog-body">
+    <div class="blog-meta">
+      <span class="category">{post.data.category}</span>
+      <span aria-hidden="true">/</span>
+      <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+      <span aria-hidden="true">·</span>
+      <span class="inline-flex items-center gap-1">
+        <Clock size={10} aria-hidden="true" />
+        {minutes} min
+      </span>
+    </div>
+
+    <Heading class="blog-title">
+      <a href={articleUrl}>{post.data.title}</a>
+    </Heading>
+    <p class="blog-excerpt">{post.data.description}</p>
+
+    <div class="blog-footer">
+      <span>{post.data.tags.slice(0, 2).join(' · ')}</span>
+      <a href={articleUrl} class="link-arrow text-xs" aria-label={`Read ${post.data.title}`}>
+        Read
+        <ArrowUpRight size={13} aria-hidden="true" />
+      </a>
+    </div>
+  </div>
+</article>

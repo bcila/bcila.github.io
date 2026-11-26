@@ -1,0 +1,88 @@
+---
+import { Copy, Check } from '@lucide/astro';
+import SocialIcon from './SocialIcon.astro';
+
+interface Props {
+  title: string;
+  url: string;
+}
+
+const { title, url } = Astro.props;
+
+const xUrl = `https://x.com/intent/post?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+---
+
+<div class="flex flex-wrap items-center gap-1.5">
+  <span class="mono-label mr-1">Share</span>
+  <a
+    href={xUrl}
+    class="icon-btn"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Share on X — opens in a new tab"
+    title="Share on X"
+  >
+    <SocialIcon platform="x" size={14} />
+  </a>
+  <a
+    href={linkedInUrl}
+    class="icon-btn"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Share on LinkedIn — opens in a new tab"
+    title="Share on LinkedIn"
+  >
+    <SocialIcon platform="linkedin" size={14} />
+  </a>
+  <button
+    type="button"
+    class="icon-btn copy-button"
+    data-copy-url={url}
+    aria-label="Copy article link"
+    title="Copy link"
+  >
+    <Copy size={14} class="copy-icon" stroke-width={1.8} aria-hidden="true" />
+    <Check size={14} class="check-icon" stroke-width={1.8} aria-hidden="true" />
+  </button>
+</div>
+
+<style>
+  .copy-button .check-icon {
+    display: none;
+    color: var(--accent);
+  }
+
+  .copy-button.is-copied .copy-icon {
+    display: none;
+  }
+
+  .copy-button.is-copied .check-icon {
+    display: block;
+  }
+</style>
+
+<script>
+  import { copyText } from '@/utils/clipboard';
+
+  document.querySelectorAll<HTMLButtonElement>('[data-copy-url]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const url = button.dataset.copyUrl;
+      if (!url) return;
+
+      try {
+        await copyText(url);
+      } catch {
+        return;
+      }
+
+      button.classList.add('is-copied');
+      button.setAttribute('aria-label', 'Link copied');
+
+      window.setTimeout(() => {
+        button.classList.remove('is-copied');
+        button.setAttribute('aria-label', 'Copy article link');
+      }, 2000);
+    });
+  });
+</script>

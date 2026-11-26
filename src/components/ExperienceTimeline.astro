@@ -1,0 +1,78 @@
+---
+import { CalendarDays, CircleCheck, MapPin } from '@lucide/astro';
+import type { ExperienceEntry } from '@/data/experience';
+
+interface Props {
+  entries: ExperienceEntry[];
+  compact?: boolean;
+}
+
+const { entries, compact = false } = Astro.props;
+---
+
+<div class="timeline">
+  {
+    entries.map((entry) => (
+      <div class="timeline-entry" data-current={String(Boolean(entry.current))}>
+        <span class="timeline-dot" aria-hidden="true" />
+
+        <article class="card timeline-card">
+          <div class="timeline-head">
+            <div>
+              <h3 class="timeline-company">{entry.company}</h3>
+              <p class="timeline-role">
+                {entry.role}
+                <span class="text-faint"> · {entry.employmentType}</span>
+              </p>
+            </div>
+
+            <div class="timeline-meta">
+              <span class="inline-flex items-center gap-1.5">
+                <CalendarDays size={12} aria-hidden="true" />
+                {entry.start} – {entry.end ?? 'Present'}
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <MapPin size={12} aria-hidden="true" />
+                {entry.location}
+              </span>
+              {entry.current && <span class="badge badge-accent">Current</span>}
+            </div>
+          </div>
+
+          <p class="timeline-summary">{entry.summary}</p>
+
+          <ul class="timeline-list">
+            {(compact ? entry.responsibilities.slice(0, 2) : entry.responsibilities).map(
+              (responsibility) => <li>{responsibility}</li>,
+            )}
+          </ul>
+
+          {!compact && entry.achievements.length > 0 && (
+            <div class="mt-4">
+              <p class="mono-label">Selected impact</p>
+              <ul class="mt-2.5 grid gap-1.5">
+                {entry.achievements.map((achievement) => (
+                  <li class="flex gap-2 text-[0.84rem] leading-relaxed text-muted">
+                    <CircleCheck
+                      size={14}
+                      class="mt-1 shrink-0 text-accent"
+                      stroke-width={1.8}
+                      aria-hidden="true"
+                    />
+                    {achievement}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <ul class="timeline-tech" aria-label={`Technologies used at ${entry.company}`}>
+            {entry.technologies.map((technology) => (
+              <li class="tag">{technology}</li>
+            ))}
+          </ul>
+        </article>
+      </div>
+    ))
+  }
+</div>

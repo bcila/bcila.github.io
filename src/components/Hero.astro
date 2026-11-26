@@ -1,0 +1,102 @@
+---
+import { ArrowRight, ArrowUpRight, Mail, MapPin } from '@lucide/astro';
+import SocialLinks from './SocialLinks.astro';
+import { profile } from '@/data/profile';
+import { experience } from '@/data/experience';
+import { withBase } from '@/utils/url';
+
+const currentRole = experience.find((entry) => entry.current) ?? experience[0];
+
+// Split the headline so the accent phrase stays data-driven.
+const { headline, accent } = profile.hero;
+const accentIndex = headline.toLowerCase().indexOf(accent.toLowerCase());
+const headlineBefore = accentIndex >= 0 ? headline.slice(0, accentIndex) : headline;
+const headlineAccent = accentIndex >= 0 ? headline.slice(accentIndex, accentIndex + accent.length) : '';
+const headlineAfter = accentIndex >= 0 ? headline.slice(accentIndex + accent.length) : '';
+---
+
+<section class="hero surface-grid" aria-labelledby="hero-title">
+  <div class="container-page hero-layout">
+    <div class="hero-copy">
+      {
+        profile.availability.available && (
+          <p class="availability-pill">
+            <span class="status-dot" aria-hidden="true" />
+            {profile.availability.label}
+          </p>
+        )
+      }
+
+      <div class="mt-7">
+        <p class="mono-label">{profile.hero.eyebrow} · {profile.location}</p>
+      </div>
+
+      <h1 class="hero-title" id="hero-title">
+        {headlineBefore}{headlineAccent && <span class="accent">{headlineAccent}</span>}{headlineAfter}
+      </h1>
+
+      <p class="hero-intro">{profile.hero.intro}</p>
+
+      <div class="hero-actions">
+        <a href={withBase('/projects/')} class="btn btn-primary">
+          View projects
+          <ArrowRight size={15} stroke-width={1.9} aria-hidden="true" />
+        </a>
+        <a href={withBase('/#contact')} class="btn btn-secondary">
+          <Mail size={15} stroke-width={1.9} aria-hidden="true" />
+          Contact me
+        </a>
+      </div>
+
+      <div class="hero-socials">
+        <span class="hero-socials-label">Elsewhere</span>
+        <SocialLinks />
+        <a
+          href={withBase(profile.resumeUrl)}
+          class="ml-auto hidden items-center gap-1 text-xs text-muted transition-colors hover:text-fg sm:inline-flex"
+          download
+        >
+          Download resume
+          <ArrowUpRight size={13} aria-hidden="true" />
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="portrait-wrap">
+        <div class="portrait-frame">
+          <img
+            src={withBase(profile.avatar)}
+            alt={profile.avatarAlt}
+            width="640"
+            height="800"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+
+        {currentRole && (
+          <a href={withBase('/experience/')} class="current-card group">
+            <p class="current-card-label">Currently building</p>
+            <p class="current-card-title">{currentRole.role} at {currentRole.company}</p>
+            <span class="mt-1.5 flex items-center gap-1 font-mono text-[0.62rem] text-accent">
+              {currentRole.technologies.slice(0, 3).join(' · ')}
+              <ArrowUpRight size={11} aria-hidden="true" />
+            </span>
+          </a>
+        )}
+      </div>
+
+      <div class="portrait-caption">
+        <div>
+          <p class="text-sm font-medium">{profile.shortName}</p>
+          <p class="font-mono text-[0.62rem] uppercase tracking-wider text-faint">{profile.title}</p>
+        </div>
+        <p class="flex items-center gap-1.5 font-mono text-[0.62rem] text-faint">
+          <MapPin size={11} aria-hidden="true" />
+          {profile.location}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

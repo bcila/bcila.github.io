@@ -1,0 +1,158 @@
+---
+import { Send } from '@lucide/astro';
+
+/**
+ * Optional contact form.
+ *
+ * GitHub Pages is static, so this form only renders when a real external
+ * endpoint is configured (for example a Formspree or Basin form URL). It posts
+ * the fields to that endpoint — there is no simulation of a successful submit.
+ *
+ * Set PUBLIC_CONTACT_FORM_ENDPOINT in .env (see .env.example) to enable it.
+ */
+const endpoint = import.meta.env.PUBLIC_CONTACT_FORM_ENDPOINT as string | undefined;
+const enabled = Boolean(endpoint && endpoint.trim().length > 0);
+
+const providerName = (() => {
+  if (!endpoint) return '';
+  try {
+    return new URL(endpoint).hostname.replace(/^www\./, '');
+  } catch {
+    return 'the form provider';
+  }
+})();
+---
+
+{
+  enabled && (
+    <form
+      class="contact-form card mt-6 p-5 sm:p-6"
+      action={endpoint}
+      method="POST"
+      data-contact-form
+      data-provider={providerName}
+    >
+      <div class="flex items-center justify-between gap-3">
+        <p class="mono-label">Send a message</p>
+        <span class="font-mono text-[0.62rem] text-faint">via {providerName}</span>
+      </div>
+
+      <div class="mt-5 grid gap-3 sm:grid-cols-2">
+        <label class="field">
+          <span class="field-label">Name</span>
+          <input class="field-input" type="text" name="name" autocomplete="name" required />
+        </label>
+        <label class="field">
+          <span class="field-label">Email</span>
+          <input
+            class="field-input"
+            type="email"
+            name="email"
+            autocomplete="email"
+            required
+          />
+        </label>
+      </div>
+
+      <label class="field mt-3">
+        <span class="field-label">Message</span>
+        <textarea class="field-input min-h-32 resize-y" name="message" rows="5" required />
+      </label>
+
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-xs text-faint">
+          Your message is sent directly to {providerName}. No data is stored on this site.
+        </p>
+        <button class="btn btn-primary" type="submit">
+          <Send size={14} aria-hidden="true" />
+          Send message
+        </button>
+      </div>
+
+      <p class="form-status mt-3 text-xs" role="status" aria-live="polite" data-form-status></p>
+    </form>
+  )
+}
+
+<style>
+  .field {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .field-label {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 0.5rem;
+    background: var(--bg-soft);
+    font-size: 0.875rem;
+    color: var(--fg);
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .field-input:hover {
+    border-color: var(--faint);
+  }
+
+  .field-input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    background: var(--panel-strong);
+  }
+
+  .form-status[data-state='success'] {
+    color: var(--accent);
+  }
+
+  .form-status[data-state='error'] {
+    color: #e89a8c;
+  }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+  const status = form?.querySelector<HTMLElement>('[data-form-status]');
+  const submit = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!status || !submit) return;
+
+    const data = new FormData(form);
+
+    status.dataset.state = '';
+    status.textContent = 'Sending…';
+    submit.disabled = true;
+
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: data,
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!response.ok) throw new Error(`Request failed with ${response.status}`);
+
+      form.reset();
+      status.dataset.state = 'success';
+      status.textContent = 'Thanks — your message was sent. I will reply by email.';
+    } catch {
+      status.dataset.state = 'error';
+      status.textContent =
+        'The message could not be sent. Please email me directly instead.';
+    } finally {
+      submit.disabled = false;
+    }
+  });
+</script>

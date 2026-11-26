@@ -1,0 +1,101 @@
+---
+import { ArrowUpRight } from '@lucide/astro';
+import SocialIcon from './SocialIcon.astro';
+import type { Project } from '@/data/projects';
+import { withBase } from '@/utils/url';
+
+interface Props {
+  project: Project;
+  variant?: 'default' | 'featured';
+  /** Heading level for the card title, so listing pages keep a valid order. */
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { project, variant = 'default', headingLevel = 'h3' } = Astro.props;
+const Heading = headingLevel;
+const detailUrl = withBase(`/projects/${project.slug}/`);
+---
+
+<article
+  class:list={[
+    'card card-interactive project-card',
+    variant === 'featured' && 'featured-project',
+  ]}
+  data-project-card
+  data-category={project.category}
+>
+  <a href={detailUrl} class="project-cover" tabindex="-1" aria-hidden="true">
+    <img
+      src={withBase(project.cover)}
+      alt={project.coverAlt}
+      width="1200"
+      height="750"
+      loading="lazy"
+      decoding="async"
+    />
+  </a>
+
+  <div class="project-body">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <span class="badge">{project.category}</span>
+      {
+        project.sample && (
+          <span class="badge" title="Starter content — replace with a real project">
+            Sample
+          </span>
+        )
+      }
+    </div>
+
+    <Heading class="project-card-title">
+      <a href={detailUrl} class="hover:text-accent">{project.title}</a>
+    </Heading>
+    <p class="project-card-tagline">{project.tagline}</p>
+
+    <ul class="project-tags" aria-label={`Technologies used in ${project.title}`}>
+      {
+        project.technologies.slice(0, variant === 'featured' ? 6 : 4).map((technology) => (
+          <li class="tag">{technology}</li>
+        ))
+      }
+    </ul>
+
+    <div class="project-links">
+      <div class="project-link-group">
+        {
+          project.github && (
+            <a
+              href={project.github}
+              class="project-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${project.title} on GitHub — opens in a new tab`}
+            >
+              <SocialIcon platform="github" size={13} />
+              GitHub
+            </a>
+          )
+        }
+        {
+          project.demo && (
+            <a
+              href={project.demo}
+              class="project-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${project.title} live demo — opens in a new tab`}
+            >
+              <ArrowUpRight size={13} aria-hidden="true" />
+              Live demo
+            </a>
+          )
+        }
+      </div>
+
+      <a href={detailUrl} class="link-arrow">
+        Details
+        <ArrowUpRight size={14} aria-hidden="true" />
+      </a>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,135 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import Hero from '@/components/Hero.astro';
+import SectionHeading from '@/components/SectionHeading.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import SkillCategoryCard from '@/components/SkillCategory.astro';
+import ExperienceTimeline from '@/components/ExperienceTimeline.astro';
+import BlogCard from '@/components/BlogCard.astro';
+import ContactSection from '@/components/ContactSection.astro';
+import { profile } from '@/data/profile';
+import { featuredProjects } from '@/data/projects';
+import { experience } from '@/data/experience';
+import { skillCategories } from '@/data/skills';
+import { getPublishedPosts } from '@/utils/blog';
+import { withBase } from '@/utils/url';
+
+const posts = (await getPublishedPosts()).slice(0, 3);
+const [leadProject, ...otherProjects] = featuredProjects;
+---
+
+<MainLayout
+  title={`${profile.name} — ${profile.title}`}
+  description={profile.site.description}
+  image="/og.png"
+  imageAlt={`${profile.name}, ${profile.title}`}
+>
+  <Hero />
+
+  <section class="section" aria-label="Featured projects">
+    <div class="container-page">
+      <div class="reveal">
+        <SectionHeading
+          eyebrow="Selected work"
+          title="Featured projects"
+          description="Backend systems, AI products, and interfaces built around them. Starter examples are labelled so the real work stays clear."
+        >
+          <a slot="action" href={withBase('/projects/')} class="btn btn-secondary">
+            All projects
+          </a>
+        </SectionHeading>
+      </div>
+
+      {
+        leadProject && (
+          <div class="mt-10 grid gap-5">
+            <div class="reveal">
+              <ProjectCard project={leadProject} variant="featured" />
+            </div>
+            <div class="project-grid">
+              {otherProjects.map((project, index) => (
+                <div class="reveal" style={`--reveal-delay: ${index * 70}ms`}>
+                  <ProjectCard project={project} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section border-t border-line" aria-label="Skills overview">
+    <div class="container-page">
+      <div class="reveal">
+        <SectionHeading
+          eyebrow="Toolkit"
+          title="Skills across the stack"
+          description="The languages, frameworks, and infrastructure I use to take a backend from an idea to a running service."
+        >
+          <a slot="action" href={withBase('/skills/')} class="btn btn-secondary">
+            Full skill set
+          </a>
+        </SectionHeading>
+      </div>
+
+      <div class="skills-grid mt-10">
+        {
+          skillCategories.map((category, index) => (
+            <div class="reveal" style={`--reveal-delay: ${(index % 3) * 60}ms`}>
+              <SkillCategoryCard category={category} />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section border-t border-line" aria-label="Recent experience">
+    <div class="container-page">
+      <div class="reveal">
+        <SectionHeading
+          eyebrow="Experience"
+          title="Where I have worked"
+          description="Recent roles building production backends and realtime systems."
+        >
+          <a slot="action" href={withBase('/experience/')} class="btn btn-secondary">
+            Full experience
+          </a>
+        </SectionHeading>
+      </div>
+
+      <div class="mt-10">
+        <ExperienceTimeline entries={experience.slice(0, 2)} compact />
+      </div>
+    </div>
+  </section>
+
+  <section class="section border-t border-line" aria-label="Latest articles">
+    <div class="container-page">
+      <div class="reveal">
+        <SectionHeading
+          eyebrow="Writing"
+          title="Notes from the backend"
+          description="Practical notes on realtime services, asynchronous work, and shipping static sites."
+        >
+          <a slot="action" href={withBase('/blog/')} class="btn btn-secondary">
+            All articles
+          </a>
+        </SectionHeading>
+      </div>
+
+      <div class="blog-grid mt-10">
+        {
+          posts.map((post, index) => (
+            <div class="reveal" style={`--reveal-delay: ${index * 60}ms`}>
+              <BlogCard post={post} />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <ContactSection />
+</MainLayout>
