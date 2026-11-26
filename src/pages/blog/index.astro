@@ -1,0 +1,160 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import BlogCard from '@/components/BlogCard.astro';
+import { getCategories, getPublishedPosts, getTags, readingTime } from '@/utils/blog';
+import { formatDate } from '@/utils/date';
+import { withBase } from '@/utils/url';
+import { profile } from '@/data/profile';
+
+const posts = await getPublishedPosts();
+const categories = getCategories(posts);
+const tags = getTags(posts);
+const sampleCount = posts.filter((post) => post.data.sample).length;
+const totalMinutes = posts.reduce((total, post) => total + readingTime(post.body), 0);
+
+const latest = posts[0];
+---
+
+<MainLayout
+  title="Blog"
+  description={`Technical notes by ${profile.name} on backend engineering, realtime systems, and shipping software.`}
+>
+  <header class="border-b border-line">
+    <div class="container-page pb-12 pt-14 sm:pb-16 sm:pt-20">
+      <div class="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
+        <div class="max-w-3xl">
+          <p class="mono-label">Writing</p>
+          <h1 class="page-title mt-5">Notes from the backend</h1>
+          <p class="mt-5 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
+            Practical write-ups on realtime services, asynchronous processing, and the small
+            decisions that make systems easier to operate.
+          </p>
+        </div>
+
+        <div class="card p-4 lg:justify-self-end">
+          <div class="flex items-center gap-6">
+            <div>
+              <p class="font-mono text-[0.62rem] uppercase tracking-wider text-faint">Articles</p>
+              <p class="mt-1 text-2xl font-semibold tracking-tight">{posts.length}</p>
+            </div>
+            <span class="h-9 w-px bg-line" aria-hidden="true"></span>
+            <div>
+              <p class="font-mono text-[0.62rem] uppercase tracking-wider text-faint">Reading</p>
+              <p class="mt-1 text-2xl font-semibold tracking-tight">{totalMinutes}<span class="ml-1 text-sm text-faint">min</span></p>
+            </div>
+          </div>
+          {latest && (
+            <p class="mt-3 border-t border-line pt-3 font-mono text-[0.62rem] text-faint">
+              Latest · {formatDate(latest.data.pubDate)}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div class="mt-9 flex flex-wrap items-center justify-between gap-4">
+        <div class="filter-bar" role="group" aria-label="Filter articles by category">
+          <button class="filter-button" type="button" data-blog-filter="all" aria-pressed="true">
+            All
+            <span class="filter-count">{posts.length}</span>
+          </button>
+          {
+            categories.map((category) => (
+              <button
+                class="filter-button"
+                type="button"
+                data-blog-filter={category}
+                aria-pressed="false"
+              >
+                {category}
+                <span class="filter-count">
+                  {posts.filter((post) => post.data.category === category).length}
+                </span>
+              </button>
+            ))
+          }
+        </div>
+        <p class="font-mono text-[0.66rem] text-faint" aria-live="polite" data-blog-status>
+          {posts.length} articles
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <section class="section-sm" aria-label="Articles">
+    <div class="container-page">
+      <div class="blog-grid" data-blog-grid>
+        {posts.map((post) => <BlogCard post={post} headingLevel="h2" />)}
+      </div>
+
+      <div class="empty-state mt-6" data-blog-empty>No articles in this category yet.</div>
+
+      {
+        sampleCount > 0 && (
+          <p class="mt-6 text-xs leading-relaxed text-faint">
+            {sampleCount} articles are starter content for the template and clearly marked
+            <span class="text-muted"> Sample</span>. Replace the MDX files in
+            <code class="rounded border border-line bg-panel px-1 py-0.5 font-mono text-[0.68rem]">
+              src/content/blog
+            </code>.
+          </p>
+        )
+      }
+
+      {
+        tags.length > 0 && (
+          <div class="mt-12 border-t border-line pt-8">
+            <p class="mono-label">Topics</p>
+            <ul class="mt-4 flex flex-wrap gap-2" aria-label="Article topics">
+              {tags.map((tag) => <li class="tag">#{tag}</li>)}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section border-t border-line" aria-labelledby="blog-cta-title">
+    <div class="container-page">
+      <div class="flex flex-wrap items-end justify-between gap-6">
+        <div class="max-w-xl">
+          <p class="mono-label">Stay in touch</p>
+          <h2 class="section-title mt-4" id="blog-cta-title">
+            Building something in this space?
+          </h2>
+          <p class="mt-3 text-sm leading-relaxed text-muted">
+            I enjoy comparing notes on realtime architecture and backend operations.
+          </p>
+        </div>
+        <a href={withBase('/#contact')} class="btn btn-primary">Start a conversation</a>
+      </div>
+    </div>
+  </section>
+</MainLayout>
+
+<script>
+  const filterButtons = document.querySelectorAll<HTMLButtonElement>('[data-blog-filter]');
+  const cards = document.querySelectorAll<HTMLElement>('[data-blog-card]');
+  const status = document.querySelector<HTMLElement>('[data-blog-status]');
+  const empty = document.querySelector<HTMLElement>('[data-blog-empty]');
+
+  const applyFilter = (filter: string) => {
+    let visible = 0;
+
+    cards.forEach((card) => {
+      const show = filter === 'all' || card.dataset.category === filter;
+      card.hidden = !show;
+      if (show) visible += 1;
+    });
+
+    filterButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.blogFilter === filter));
+    });
+
+    if (status) status.textContent = `${visible} ${visible === 1 ? 'article' : 'articles'}`;
+    if (empty) empty.dataset.visible = String(visible === 0);
+  };
+
+  filterButtons.forEach((button) => {
+    button.addEventListener('click', () => applyFilter(button.dataset.blogFilter ?? 'all'));
+  });
+</script>
