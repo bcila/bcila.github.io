@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" role="img" aria-label="Abstract realtime voice session dashboard">
+  <defs>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#eef5f1" fill-opacity="0.06"/>
+    </pattern>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8ce8a8" stop-opacity="0.15"/>
+      <stop offset="0.5" stop-color="#8ce8a8"/>
+      <stop offset="1" stop-color="#8ce8a8" stop-opacity="0.15"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="750" fill="#0a0c0d"/>
+  <rect width="1200" height="750" fill="url(#dots)"/>
+
+  <text x="48" y="62" fill="#f1f4f2" font-family="Georgia, serif" font-size="26" letter-spacing="-0.5">Pulseboard</text>
+  <text x="48" y="84" fill="#6f7975" font-family="ui-monospace, monospace" font-size="9" letter-spacing="1.6">REALTIME OPERATIONS</text>
+
+  <g font-family="ui-monospace, monospace" font-size="10">
+    <circle cx="1014" cy="56" r="4" fill="#8ce8a8"/>
+    <text x="1026" y="60" fill="#9aa39f" letter-spacing="1">ALL SYSTEMS NOMINAL</text>
+    <rect x="994" y="78" width="158" height="30" rx="8" fill="#121617" stroke="#eef5f1" stroke-opacity="0.12"/>
+    <text x="1012" y="97" fill="#9aa39f">Filter sessions</text>
+  </g>
+
+  <rect x="48" y="120" width="1104" height="582" rx="14" fill="#0e1112" stroke="#eef5f1" stroke-opacity="0.12"/>
+
+  <rect x="48" y="120" width="340" height="582" rx="14" fill="#0b0e0f"/>
+  <path d="M388 120v582" stroke="#eef5f1" stroke-opacity="0.1"/>
+  <text x="72" y="154" fill="#7d8783" font-family="ui-monospace, monospace" font-size="9" letter-spacing="1.4">LIVE SESSIONS · 3</text>
+
+  <g>
+    <rect x="68" y="174" width="300" height="98" rx="9" fill="#121617" stroke="#8ce8a8" stroke-opacity="0.3"/>
+    <circle cx="88" cy="196" r="4" fill="#8ce8a8"/>
+    <text x="102" y="200" fill="#f1f4f2" font-family="ui-monospace, monospace" font-size="11">session_4f2a</text>
+    <text x="88" y="222" fill="#7d8783" font-family="ui-monospace, monospace" font-size="9">Inbound · 02:14</text>
+    <path d="M88 246h14l6-10 7 22 8-30 8 38 8-24 7 12 6-8h12" fill="none" stroke="#8ce8a8" stroke-width="1.6" stroke-linecap="round"/>
+    <text x="344" y="200" text-anchor="end" fill="#8ce8a8" font-family="ui-monospace, monospace" font-size="9">LIVE</text>
+  </g>
+
+  <g font-family="ui-monospace, monospace" font-size="9">
+    <rect x="68" y="286" width="300" height="86" rx="9" fill="#0d1011" stroke="#eef5f1" stroke-opacity="0.08"/>
+    <circle cx="88" cy="308" r="4" fill="#59635f"/>
+    <text x="102" y="312" fill="#c8cfcb" font-size="11">session_9c11</text>
+    <text x="88" y="334" fill="#6f7975">Outbound · 07:51</text>
+    <text x="344" y="312" text-anchor="end" fill="#6f7975">ENDED</text>
+    <text x="88" y="356" fill="#6f7975">42 turns · 318 ms avg</text>
+  </g>
+
+  <g font-family="ui-monospace, monospace" font-size="9">
+    <rect x="68" y="386" width="300" height="86" rx="9" fill="#0d1011" stroke="#eef5f1" stroke-opacity="0.08"/>
+    <circle cx="88" cy="408" r="4" fill="#59635f"/>
+    <text x="102" y="412" fill="#c8cfcb" font-size="11">session_71be</text>
+    <text x="88" y="434" fill="#6f7975">Inbound · 05:02</text>
+    <text x="344" y="412" text-anchor="end" fill="#6f7975">ENDED</text>
+    <text x="88" y="456" fill="#6f7975">Transferred · billing</text>
+  </g>
+
+  <g font-family="ui-monospace, monospace" font-size="9">
+    <rect x="68" y="486" width="300" height="86" rx="9" fill="#0d1011" stroke="#eef5f1" stroke-opacity="0.08"/>
+    <circle cx="88" cy="508" r="4" fill="#e8c98c"/>
+    <text x="102" y="512" fill="#c8cfcb" font-size="11">session_2d80</text>
+    <text x="88" y="534" fill="#6f7975">Inbound · 01:17</text>
+    <text x="344" y="512" text-anchor="end" fill="#e8c98c">HOLD</text>
+    <text x="88" y="556" fill="#6f7975">Elevated latency</text>
+  </g>
+
+  <path d="M388 120h764v60H388z" fill="#101415"/>
+  <path d="M388 180h764" stroke="#eef5f1" stroke-opacity="0.1"/>
+  <text x="416" y="147" fill="#f1f4f2" font-family="Georgia, serif" font-size="19">session_4f2a</text>
+  <text x="528" y="147" fill="#7d8783" font-family="ui-monospace, monospace" font-size="9" letter-spacing="0.8">INBOUND · 02:14 · AGENT: SUPPORT</text>
+  <g font-family="ui-monospace, monospace" font-size="9">
+    <rect x="954" y="132" width="66" height="26" rx="6" fill="#121617" stroke="#eef5f1" stroke-opacity="0.12"/>
+    <text x="971" y="149" fill="#c8cfcb">Mute</text>
+    <rect x="1028" y="132" width="94" height="26" rx="6" fill="#8ce8a8" fill-opacity="0.12" stroke="#8ce8a8" stroke-opacity="0.3"/>
+    <text x="1046" y="149" fill="#8ce8a8">Take over</text>
+  </g>
+
+  <rect x="388" y="180" width="764" height="148" fill="#0d1011"/>
+  <path d="M388 328h764" stroke="#eef5f1" stroke-opacity="0.08"/>
+  <g stroke="#eef5f1" stroke-opacity="0.045">
+    <path d="M388 218h764M388 256h764M388 294h764"/>
+  </g>
+  <text x="416" y="202" fill="#6f7975" font-family="ui-monospace, monospace" font-size="8.5" letter-spacing="1.2">TURN LATENCY · LAST 120S</text>
+
+  <path d="M416 292h14l7-22 9 44 9-58 10 70 9-48 8 30 9-16 9 24 8-36 9 47 9-29 8 14 9-40 9 56 9-34 9 20 8-10 9 30 8-44 9 38 9-18 8 26 9-52 9 40 8-16 9 8 9-22 8 34 9-46 9 30 8-12 9 20 8-28 9 38 9-20 8 10 9-32 9 44 8-26 9 18 9-8 8 22 9-38 9 30 8-14 9 6 8-18 9 26 9-34 8 20 9-10 9 16 8-24 9 30 9-18 8 8 9-14 9 22 8-28 9 34 9-20 8 10 9-6 8 14 9-18 9 24 8-22 9 12 9-8 8 16 9-20 9 18 8-10 9 6 9-12 8 14 9-18 9 22 8-14 9 8 8-6 9 10 9-12 8 16 9-20 9 14 8-8 9 4" fill="none" stroke="url(#wave)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g font-family="Georgia, serif" font-size="13">
+    <text x="416" y="372" fill="#6f7975" font-family="ui-monospace, monospace" font-size="8.5" letter-spacing="1.2">TRANSCRIPT</text>
+    <rect x="416" y="390" width="330" height="54" rx="8" fill="#121617" stroke="#eef5f1" stroke-opacity="0.08"/>
+    <text x="430" y="412" fill="#c8cfcb">I need to change the billing address</text>
+    <text x="430" y="432" fill="#c8cfcb">on my last invoice.</text>
+    <text x="430" y="464" fill="#6f7975" font-family="ui-monospace, monospace" font-size="8.5">CALLER · 00:41</text>
+
+    <rect x="770" y="390" width="330" height="70" rx="8" fill="#8ce8a8" fill-opacity="0.06" stroke="#8ce8a8" stroke-opacity="0.22"/>
+    <text x="784" y="412" fill="#cfe9d8">Of course. I can update that now —</text>
+    <text x="784" y="432" fill="#cfe9d8">can you confirm the postal code?</text>
+    <text x="784" y="464" fill="#7d8783" font-family="ui-monospace, monospace" font-size="8.5">AGENT · 00:44</text>
+  </g>
+
+  <g font-family="ui-monospace, monospace" font-size="9">
+    <rect x="416" y="500" width="150" height="76" rx="8" fill="#0d1011" stroke="#eef5f1" stroke-opacity="0.08"/>
+    <text x="432" y="522" fill="#6f7975" letter-spacing="1">AVG LATENCY</text>
+    <text x="432" y="552" fill="#f1f4f2" font-size="22">318<span fill="#7d8783" font-size="11"> ms</span></text>
+    <rect x="582" y="500" width="150" height="76" rx="8" fill="#0d1011" stroke="#eef5f1" stroke-opacity="0.08"/>
+    <text x="598" y="522" fill="#6f7975" letter-spacing="1">TURNS</text>
+    <text x="598" y="552" fill="#f1f4f2" font-size="22">6</text>
+    <rect x="748" y="500" width="150" height="76" rx="8" fill="#0d1011" stroke="#eef5f1" stroke-opacity="0.08"/>
+    <text x="764" y="522" fill="#6f7975" letter-spacing="1">TOOL CALLS</text>
+    <text x="764" y="552" fill="#f1f4f2" font-size="22">1</text>
+  </g>
+
+  <text x="1128" y="680" text-anchor="end" fill="#59635f" font-family="ui-monospace, monospace" font-size="9" letter-spacing="1.4">SAMPLE PROJECT · TEMPLATE ARTWORK</text>
+</svg>

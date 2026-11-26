@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Abstract task queue illustration">
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#eef5f1" fill-opacity="0.055"/>
+    </pattern>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ce8a8" stop-opacity="0.1"/>
+      <stop offset="1" stop-color="#8ce8a8" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#080a0b"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <text x="64" y="70" fill="#8b9590" font-family="ui-monospace, monospace" font-size="10" letter-spacing="2.4">ASYNC · AT-LEAST-ONCE</text>
+  <text x="1136" y="70" text-anchor="end" fill="#59635f" font-family="ui-monospace, monospace" font-size="10" letter-spacing="2">CELERY / REDIS</text>
+
+  <g>
+    <rect x="64" y="238" width="200" height="154" rx="12" fill="#0e1112" stroke="#eef5f1" stroke-opacity="0.14"/>
+    <text x="84" y="266" fill="#8b9590" font-family="ui-monospace, monospace" font-size="9" letter-spacing="1.2">PRODUCER</text>
+    <g font-family="ui-monospace, monospace" font-size="8.5" fill="#6f7975">
+      <rect x="84" y="282" width="160" height="24" rx="5" fill="#121617" stroke="#eef5f1" stroke-opacity="0.08"/>
+      <text x="96" y="298">POST /orders</text>
+      <rect x="84" y="314" width="160" height="24" rx="5" fill="#121617" stroke="#eef5f1" stroke-opacity="0.08"/>
+      <text x="96" y="330">publish event</text>
+      <rect x="84" y="346" width="160" height="24" rx="5" fill="#121617" stroke="#eef5f1" stroke-opacity="0.08"/>
+      <text x="96" y="362">return 202</text>
+    </g>
+  </g>
+
+  <path d="M264 315h64" stroke="#8ce8a8" stroke-opacity="0.5" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <path d="M322 310l8 5-8 5" fill="none" stroke="#8ce8a8" stroke-opacity="0.7" stroke-width="1.5"/>
+
+  <g>
+    <rect x="336" y="238" width="200" height="154" rx="12" fill="#0e1112" stroke="#8ce8a8" stroke-opacity="0.28"/>
+    <text x="356" y="266" fill="#8ce8a8" font-family="ui-monospace, monospace" font-size="9" letter-spacing="1.2">BROKER</text>
+    <g font-family="ui-monospace, monospace" font-size="8.5">
+      <rect x="356" y="282" width="160" height="24" rx="5" fill="#152019" stroke="#8ce8a8" stroke-opacity="0.2"/>
+      <text x="368" y="298" fill="#cfe9d8">critical · 12</text>
+      <rect x="356" y="314" width="160" height="24" rx="5" fill="#121617" stroke="#eef5f1" stroke-opacity="0.08"/>
+      <text x="368" y="330" fill="#9aa39f">default · 48</text>
+      <rect x="356" y="346" width="160" height="24" rx="5" fill="#121617" stroke="#eef5f1" stroke-opacity="0.08"/>
+      <text x="368" y="362" fill="#9aa39f">bulk · 102</text>
+    </g>
+  </g>
+
+  <path d="M536 315h64" stroke="#8ce8a8" stroke-opacity="0.5" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <path d="M594 310l8 5-8 5" fill="none" stroke="#8ce8a8" stroke-opacity="0.7" stroke-width="1.5"/>
+
+  <g>
+    <circle cx="704" cy="315" r="86" fill="#0e1112" stroke="#eef5f1" stroke-opacity="0.14"/>
+    <circle cx="704" cy="315" r="58" fill="none" stroke="#8ce8a8" stroke-opacity="0.2"/>
+    <g fill="#cfe9d8" font-family="ui-monospace, monospace" font-size="10">
+      <circle cx="704" cy="300" r="22" fill="#152019" stroke="#8ce8a8" stroke-opacity="0.35"/>
+      <text x="704" y="304" text-anchor="middle">W</text>
+      <text x="704" y="354" text-anchor="middle" fill="#6f7975" font-size="8.5">8 workers</text>
+    </g>
+    <text x="704" y="426" text-anchor="middle" fill="#8b9590" font-family="ui-monospace, monospace" font-size="9" letter-spacing="1.2">WORKERS</text>
+  </g>
+
+  <path d="M790 315h58" stroke="#8ce8a8" stroke-opacity="0.5" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <path d="M842 310l8 5-8 5" fill="none" stroke="#8ce8a8" stroke-opacity="0.7" stroke-width="1.5"/>
+
+  <g>
+    <rect x="856" y="238" width="280" height="154" rx="12" fill="#0e1112" stroke="#eef5f1" stroke-opacity="0.14"/>
+    <text x="876" y="266" fill="#8b9590" font-family="ui-monospace, monospace" font-size="9" letter-spacing="1.2">SIDE EFFECTS</text>
+    <g font-family="ui-monospace, monospace" font-size="8.5">
+      <rect x="876" y="282" width="240" height="24" rx="5" fill="#121617" stroke="#eef5f1" stroke-opacity="0.08"/>
+      <text x="888" y="298" fill="#9aa39f">✓ persist transcript</text>
+      <rect x="876" y="314" width="240" height="24" rx="5" fill="#121617" stroke="#eef5f1" stroke-opacity="0.08"/>
+      <text x="888" y="330" fill="#9aa39f">✓ send receipt</text>
+      <rect x="876" y="346" width="240" height="24" rx="5" fill="#121617" stroke="#eef5f1" stroke-opacity="0.08"/>
+      <text x="888" y="362" fill="#9aa39f">✓ update index</text>
+    </g>
+  </g>
+
+  <g font-family="ui-monospace, monospace" font-size="8.5" fill="#59635f">
+    <text x="64" y="490">IDEMPOTENCY KEY</text>
+    <text x="64" y="512" fill="#9aa39f">order:4812:receipt:v1</text>
+    <text x="336" y="490">ACK POLICY</text>
+    <text x="336" y="512" fill="#9aa39f">acks_late = true</text>
+    <text x="608" y="490">RETRY</text>
+    <text x="608" y="512" fill="#9aa39f">backoff + jitter</text>
+    <text x="880" y="490">FAILURE</text>
+    <text x="880" y="512" fill="#9aa39f">dead-letter queue</text>
+  </g>
+
+  <path d="M64 548h1072" stroke="#eef5f1" stroke-opacity="0.08"/>
+  <text x="64" y="590" fill="#59635f" font-family="ui-monospace, monospace" font-size="8.5">SAMPLE ARTICLE ARTWORK</text>
+  <text x="1136" y="590" text-anchor="end" fill="#59635f" font-family="ui-monospace, monospace" font-size="8.5">AT-LEAST-ONCE DELIVERY</text>
+</svg>
