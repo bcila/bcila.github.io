@@ -1,0 +1,55 @@
+name: Deploy to GitHub Pages
+
+on:
+  # Deploy on every push to the default branch.
+  push:
+    branches: [main]
+  # Allow manual deployments from the Actions tab.
+  workflow_dispatch:
+
+# Permissions required by GitHub Pages: read the repository, and let the
+# workflow mint an OIDC token to publish the deployment.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two deployments at the same time; let an in-flight one finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install, build, and upload the site
+        uses: withastro/action@v6
+        with:
+          node-version: 24
+          # Uncomment and set these when deploying to a project site
+          # (https://<user>.github.io/<repo>/) instead of a user site.
+          # env:
+          #   SITE_URL: https://<user>.github.io
+          #   BASE_PATH: /<repo>
+        env:
+          # Repository variables are optional; the astro.config.mjs defaults
+          # already target the bcila.github.io user site.
+          SITE_URL: ${{ vars.SITE_URL }}
+          BASE_PATH: ${{ vars.BASE_PATH }}
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
