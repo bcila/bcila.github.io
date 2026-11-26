@@ -1,0 +1,79 @@
+---
+import BaseHead from '@/components/BaseHead.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import '@/styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string | undefined;
+  imageAlt?: string | undefined;
+  noindex?: boolean;
+  type?: 'website' | 'article';
+  publishedTime?: Date | undefined;
+  modifiedTime?: Date | undefined;
+  structuredData?: Record<string, unknown> | undefined;
+}
+
+const {
+  title,
+  description,
+  image,
+  imageAlt,
+  noindex = false,
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  structuredData,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <BaseHead
+      title={title}
+      description={description}
+      image={image}
+      imageAlt={imageAlt}
+      noindex={noindex}
+      type={type}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
+      structuredData={structuredData}
+    />
+    <slot name="head" />
+  </head>
+  <body id="top">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const items = document.querySelectorAll<HTMLElement>('.reveal');
+
+      if (reducedMotion || !('IntersectionObserver' in window)) {
+        items.forEach((item) => item.classList.add('is-visible'));
+      } else {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+        );
+
+        items.forEach((item) => observer.observe(item));
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+---
+import SocialIcon from './SocialIcon.astro';
+import { profile, type SocialLink } from '@/data/profile';
+
+interface Props {
+  socials?: readonly SocialLink[];
+  variant?: 'icon' | 'pill';
+  label?: string;
+}
+
+const { socials = profile.socials, variant = 'icon', label = 'Social profiles' } = Astro.props;
+---
+
+<ul class="flex flex-wrap items-center gap-1.5" aria-label={label} style="list-style:none;margin:0;padding:0;">
+  {
+    socials.map((social) => (
+      <li>
+        <a
+          href={social.href}
+          target="_blank"
+          rel="noopener noreferrer me"
+          aria-label={`${social.label} — opens in a new tab`}
+          class={variant === 'pill' ? 'btn btn-secondary' : 'icon-btn'}
+          title={social.label}
+        >
+          <SocialIcon platform={social.icon} size={15} />
+          {variant === 'pill' && <span>{social.label}</span>}
+        </a>
+      </li>
+    ))
+  }
+</ul>

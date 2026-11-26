@@ -1,0 +1,168 @@
+---
+import { ArrowUpRight, Menu, X } from '@lucide/astro';
+import ThemeToggle from './ThemeToggle.astro';
+import SocialLinks from './SocialLinks.astro';
+import { profile } from '@/data/profile';
+import { stripBase, withBase } from '@/utils/url';
+
+const path = stripBase(Astro.url.pathname);
+
+const navItems = [
+  { label: 'Home', href: '/', match: '/' },
+  { label: 'Projects', href: '/projects/', match: '/projects' },
+  { label: 'Experience', href: '/experience/', match: '/experience' },
+  { label: 'Skills', href: '/skills/', match: '/skills' },
+  { label: 'Blog', href: '/blog/', match: '/blog' },
+  // The contact anchor lives on the home page, so Home covers that state.
+  { label: 'Contact', href: '/#contact', match: null },
+] as const;
+
+const contactHref = withBase('/#contact');
+
+const isActive = (match: string | null) => {
+  if (!match) return false;
+  if (match === '/') return path === '/' || path === '';
+  return path.startsWith(match);
+};
+---
+
+<header class="site-header">
+  <div class="container-page header-inner">
+    <a href={withBase('/')} class="brand">
+      <span class="brand-mark" aria-hidden="true">{profile.initials}</span>
+      <span>
+        <span class="brand-name">{profile.shortName}</span>
+        <span class="brand-meta">{profile.title}</span>
+      </span>
+    </a>
+
+    <nav class="desktop-nav" aria-label="Primary">
+      <ul class="nav-list">
+        {
+          navItems.map((item) => (
+            <li>
+              <a
+                href={withBase(item.href)}
+                class="nav-link"
+                aria-current={isActive(item.match) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <ThemeToggle />
+      <a href={contactHref} class="btn btn-primary header-contact">
+        Let&rsquo;s talk
+        <ArrowUpRight size={15} stroke-width={1.9} aria-hidden="true" />
+      </a>
+      <button
+        class="icon-btn menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        aria-label="Open navigation menu"
+        data-menu-toggle
+      >
+        <Menu class="menu-icon-open" size={18} stroke-width={1.8} aria-hidden="true" />
+        <X class="menu-icon-close" size={18} stroke-width={1.8} aria-hidden="true" />
+      </button>
+    </div>
+  </div>
+
+  <div
+    class="mobile-menu"
+    id="mobile-menu"
+    data-open="false"
+    aria-hidden="true"
+    inert
+    data-mobile-menu
+  >
+    <div class="container-page mobile-menu-inner">
+      <nav aria-label="Mobile">
+        {
+          navItems.map((item) => (
+            <a
+              href={withBase(item.href)}
+              class="mobile-link"
+              aria-current={isActive(item.match) ? 'page' : undefined}
+              data-mobile-link
+            >
+              {item.label}
+            </a>
+          ))
+        }
+        <a href={contactHref} class="mobile-link" data-mobile-link>
+          Contact
+          <ArrowUpRight size={16} stroke-width={1.8} aria-hidden="true" />
+        </a>
+      </nav>
+
+      <div class="mobile-menu-footer">
+        <a href={`mailto:${profile.email}`} class="text-xs text-muted hover:text-fg">
+          {profile.email}
+        </a>
+        <SocialLinks />
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .menu-icon-close {
+    display: none;
+  }
+
+  .menu-toggle[aria-expanded='true'] .menu-icon-open {
+    display: none;
+  }
+
+  .menu-toggle[aria-expanded='true'] .menu-icon-close {
+    display: block;
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const menu = document.querySelector<HTMLElement>('[data-mobile-menu]');
+  const links = document.querySelectorAll<HTMLElement>('[data-mobile-link]');
+  const desktopQuery = window.matchMedia('(min-width: 901px)');
+
+  const setOpen = (open: boolean) => {
+    if (!toggle || !menu) return;
+
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+    menu.dataset.open = String(open);
+    menu.setAttribute('aria-hidden', String(!open));
+    menu.toggleAttribute('inert', !open);
+    document.body.classList.toggle('menu-open', open);
+
+    if (open) {
+      menu.querySelector<HTMLElement>('a')?.focus({ preventScroll: true });
+    }
+  };
+
+  toggle?.addEventListener('click', () => {
+    setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+  });
+
+  links.forEach((link) => {
+    link.addEventListener('click', () => setOpen(false));
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') {
+      setOpen(false);
+      toggle.focus();
+    }
+  });
+
+  desktopQuery.addEventListener('change', (event) => {
+    if (event.matches) setOpen(false);
+  });
+</script>

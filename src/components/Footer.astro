@@ -1,0 +1,70 @@
+---
+import { ArrowUp, Download, Mail } from '@lucide/astro';
+import SocialLinks from './SocialLinks.astro';
+import { profile } from '@/data/profile';
+import { withBase } from '@/utils/url';
+
+const year = new Date().getFullYear();
+
+const footerNav = [
+  { label: 'Projects', href: '/projects/' },
+  { label: 'Experience', href: '/experience/' },
+  { label: 'Skills', href: '/skills/' },
+  { label: 'Blog', href: '/blog/' },
+  { label: 'Contact', href: '/#contact' },
+];
+---
+
+<footer class="site-footer">
+  <div class="container-page">
+    <div class="footer-top">
+      <div class="max-w-sm">
+        <a href={withBase('/')} class="brand">
+          <span class="brand-mark" aria-hidden="true">{profile.initials}</span>
+          <span>
+            <span class="brand-name">{profile.shortName}</span>
+            <span class="brand-meta">{profile.title}</span>
+          </span>
+        </a>
+        <p class="mt-4 text-sm leading-relaxed text-muted">{profile.bio}</p>
+      </div>
+
+      <div class="flex flex-col gap-5">
+        <nav aria-label="Footer">
+          <ul class="footer-links" style="list-style:none;margin:0;padding:0;">
+            {
+              footerNav.map((item) => (
+                <li>
+                  <a href={withBase(item.href)}>{item.label}</a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <a href={withBase(profile.resumeUrl)} class="btn btn-secondary" download>
+            <Download size={14} stroke-width={1.8} aria-hidden="true" />
+            Resume
+          </a>
+          <a href={`mailto:${profile.email}`} class="btn btn-secondary">
+            <Mail size={14} stroke-width={1.8} aria-hidden="true" />
+            Email
+          </a>
+          <SocialLinks />
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; {year} {profile.name}. All rights reserved.</p>
+      <div class="flex items-center gap-4">
+        <p>Built with Astro · Deployed on GitHub Pages</p>
+        <a href="#top" class="inline-flex items-center gap-1 hover:text-fg" aria-label="Back to top">
+          Top
+          <ArrowUp size={12} aria-hidden="true" />
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
