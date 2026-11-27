@@ -10,6 +10,11 @@ export interface ExperienceEntry {
   achievements: string[];
   technologies: string[];
   current?: boolean;
+  /**
+   * Short stack shown in the home page "Currently building" card.
+   * Keeps that summary explicit instead of slicing `technologies`.
+   */
+  currentStack?: string[];
 }
 
 export interface EducationEntry {
@@ -64,6 +69,7 @@ export const experience: ExperienceEntry[] = [
       'Azure',
       'Coolify',
     ],
+    currentStack: ['Python', 'FastAPI', 'Node.js', 'NestJS'],
   },
   {
     company: 'VLMedia',

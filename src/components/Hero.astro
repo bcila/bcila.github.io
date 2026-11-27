@@ -79,8 +79,8 @@ const headlineAfter = accentIndex >= 0 ? headline.slice(accentIndex + accent.len
           <a href={withBase('/experience/')} class="current-card group">
             <p class="current-card-label">Currently building</p>
             <p class="current-card-title">{currentRole.role} at {currentRole.company}</p>
-            <span class="mt-1.5 flex items-center gap-1 font-mono text-[0.62rem] text-accent">
-              {currentRole.technologies.slice(0, 3).join(' · ')}
+            <span class="current-card-stack">
+              {(currentRole.currentStack ?? currentRole.technologies.slice(0, 3)).join(' · ')}
               <ArrowUpRight size={11} aria-hidden="true" />
             </span>
           </a>
