@@ -226,6 +226,41 @@ Then confirm:
 2. Set `SITE_URL=https://burakcila.dev` and `BASE_PATH=/` as repository variables.
 3. Configure DNS as described in GitHub's custom domain documentation.
 
+### 7. Troubleshooting: “YOUR SITE COULD NOT BE BUILT”
+
+If Actions shows a failing **`pages-build-deployment`** job with a log like
+`Liquid syntax error` or *invalid YAML front matter* pointing at
+`src/pages/*.astro`, GitHub is running its **legacy Jekyll builder** over the
+repository root instead of using this workflow. Jekyll treats every file with a
+`---` block as front matter, so Astro pages and MDX articles break it.
+
+This repository is not a Jekyll site, and it must not be built as one.
+
+**Fix — point Pages at the workflow:**
+
+1. **Settings → Pages → Build and deployment → Source** → choose **GitHub Actions**.
+2. Re-run the **Deploy to GitHub Pages** workflow from the **Actions** tab.
+
+Alternatively disable the stale legacy workflow (**Actions → pages-build-deployment → … → Disable workflow**),
+or with the `gh` CLI:
+
+```bash
+# use GitHub Actions as the Pages source
+gh api -X PUT /repos/OWNER/REPO/pages -f build_type=workflow
+
+# if the legacy workflow still appears, disable it (id from `gh api /repos/OWNER/REPO/actions/workflows`)
+gh api -X PUT /repos/OWNER/REPO/actions/workflows/431507821/disable
+```
+
+Confirm the fix worked: the next push should run only **Deploy to GitHub Pages**,
+and that run's `deploy` job should report the live `page_url`. A failing
+`pages-build-deployment` run, if it ever succeeds, would publish a Jekyll
+rendering of the repo root and overwrite the real site — so do not work around
+it by adding a Jekyll `_config.yml`.
+
+The build output includes `public/.nojekyll` so the published artifact is never
+processed by Jekyll, whichever deployment path is used.
+
 ---
 
 ## Project structure

@@ -27,18 +27,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      - name: Show deployment target
+        run: |
+          echo "SITE_URL=${SITE_URL:-https://bcila.github.io (default)}"
+          echo "BASE_PATH=${BASE_PATH:-/ (default)}"
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          BASE_PATH: ${{ vars.BASE_PATH }}
+
       - name: Install, build, and upload the site
         uses: withastro/action@v6
         with:
           node-version: 24
-          # Uncomment and set these when deploying to a project site
-          # (https://<user>.github.io/<repo>/) instead of a user site.
-          # env:
-          #   SITE_URL: https://<user>.github.io
-          #   BASE_PATH: /<repo>
         env:
-          # Repository variables are optional; the astro.config.mjs defaults
-          # already target the bcila.github.io user site.
+          # Optional. For a project site (https://<user>.github.io/<repo>/),
+          # set these as repository variables:
+          #   SITE_URL  = https://<user>.github.io
+          #   BASE_PATH = /<repo>
+          # astro.config.mjs falls back to this user site's defaults.
           SITE_URL: ${{ vars.SITE_URL }}
           BASE_PATH: ${{ vars.BASE_PATH }}
 
