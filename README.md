@@ -238,25 +238,38 @@ This repository is not a Jekyll site, and it must not be built as one.
 
 **Fix — point Pages at the workflow:**
 
-1. **Settings → Pages → Build and deployment → Source** → choose **GitHub Actions**.
-2. Re-run the **Deploy to GitHub Pages** workflow from the **Actions** tab.
+1. **Settings → Pages → Build and deployment → Source** → choose **GitHub Actions** and save.
+2. Push any commit (or re-run **Deploy to GitHub Pages** from the **Actions** tab).
 
-Alternatively disable the stale legacy workflow (**Actions → pages-build-deployment → … → Disable workflow**),
-or with the `gh` CLI:
+That single setting is the fix. There is nothing else to disable.
+
+> **You will not find a “Disable workflow” button.** `pages-build-deployment`
+> lives at `dynamic/pages/pages-build-deployment` — it is GitHub-managed
+> infrastructure, not a file in this repository, so the usual workflow menu is
+> unavailable. It may still sit in the Actions list showing `active`; that
+> label is cosmetic. Once the Pages source is **GitHub Actions**, pushes no
+> longer trigger it.
+
+Verify with the API (no token needed):
 
 ```bash
-# use GitHub Actions as the Pages source
-gh api -X PUT /repos/OWNER/REPO/pages -f build_type=workflow
-
-# if the legacy workflow still appears, disable it (id from `gh api /repos/OWNER/REPO/actions/workflows`)
-gh api -X PUT /repos/OWNER/REPO/actions/workflows/431507821/disable
+curl -s "https://api.github.com/repos/OWNER/REPO/actions/runs?per_page=5" \
+  | python3 -c "import sys,json;[print(r['created_at'],r['name'],r['conclusion']) for r in json.load(sys.stdin)['workflow_runs']]"
 ```
 
-Confirm the fix worked: the next push should run only **Deploy to GitHub Pages**,
-and that run's `deploy` job should report the live `page_url`. A failing
-`pages-build-deployment` run, if it ever succeeds, would publish a Jekyll
-rendering of the repo root and overwrite the real site — so do not work around
-it by adding a Jekyll `_config.yml`.
+After the next push you should see **only** `Deploy to GitHub Pages`, with
+`deploy` reporting the live `page_url`. If `pages-build-deployment` still
+appears for a **new** commit, the source setting did not save — revisit step 1.
+
+With an authenticated token you can also confirm the setting directly:
+
+```bash
+gh api /repos/OWNER/REPO/pages --jq '.build_type'   # expect: workflow
+```
+
+A failing `pages-build-deployment` run is harmless because its `deploy` job is
+skipped. But do **not** “fix” it with a Jekyll `_config.yml`: that would make the
+legacy build succeed and publish the repository root over the real site.
 
 The build output includes `public/.nojekyll` so the published artifact is never
 processed by Jekyll, whichever deployment path is used.
